@@ -1,4 +1,5 @@
 import { UmbDataTypeDetailModel, UmbDataTypePropertyModel } from '../../types.js';
+import { UMB_DATA_TYPE_ENTITY_TYPE } from '../../entity.js';
 import { UmbId } from '@umbraco-cms/backoffice/id';
 import { UmbDetailDataSource } from '@umbraco-cms/backoffice/repository';
 import {
@@ -35,7 +36,7 @@ export class UmbDataTypeServerDataSource implements UmbDetailDataSource<UmbDataT
 	 */
 	async createScaffold(parentUnique: string | null) {
 		const data: UmbDataTypeDetailModel = {
-			entityType: 'data-type',
+			entityType: UMB_DATA_TYPE_ENTITY_TYPE,
 			unique: UmbId.new(),
 			parentUnique,
 			name: '',
@@ -64,7 +65,7 @@ export class UmbDataTypeServerDataSource implements UmbDetailDataSource<UmbDataT
 
 		// TODO: make data mapper to prevent errors
 		const dataType: UmbDataTypeDetailModel = {
-			entityType: 'data-type',
+			entityType: UMB_DATA_TYPE_ENTITY_TYPE,
 			unique: data.id,
 			parentUnique: data.parentId || null,
 			name: data.name,

@@ -3,8 +3,9 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type StylesheetOverviewResponseModel = {
+import type { FileSystemItemViewModelBaseModel } from './FileSystemItemViewModelBaseModel';
+
+export type StylesheetOverviewResponseModel = (FileSystemItemViewModelBaseModel & {
     name: string;
-    path: string;
-};
+});
 
