@@ -1,13 +1,13 @@
 import type { UmbItemDataSource } from '@umbraco-cms/backoffice/repository';
-import { MediaResource, MediaItemResponseModel } from '@umbraco-cms/backoffice/backend-api';
+import { MediaItemResponseModel, MediaResource } from '@umbraco-cms/backoffice/backend-api';
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import { tryExecuteAndNotify } from '@umbraco-cms/backoffice/resources';
 
 /**
- * A data source for Media items that fetches data from the server
+ * A data source for Data Type items that fetches data from the server
  * @export
  * @class UmbMediaItemServerDataSource
- * @implements {MediaItemDataSource}
+ * @implements {DocumentTreeDataSource}
  */
 export class UmbMediaItemServerDataSource implements UmbItemDataSource<MediaItemResponseModel> {
 	#host: UmbControllerHost;
@@ -24,6 +24,7 @@ export class UmbMediaItemServerDataSource implements UmbItemDataSource<MediaItem
 	/**
 	 * Fetches the items for the given ids from the server
 	 * @param {Array<string>} ids
+	 * @return {*}
 	 * @memberof UmbMediaItemServerDataSource
 	 */
 	async getItems(ids: Array<string>) {

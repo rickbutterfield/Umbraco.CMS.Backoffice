@@ -1,5 +1,5 @@
-import { UmbMediaRepository } from '../repository/media.repository.js';
-import type { UmbMediaDetailModel } from '../index.js';
+import { UmbMediaDetailRepository } from '../index.js';
+import { UmbMediaDetailModel } from '../types.js';
 import {
 	UmbSaveableWorkspaceContextInterface,
 	UmbEditableWorkspaceContextBase,
@@ -9,17 +9,16 @@ import { UmbControllerHostElement } from '@umbraco-cms/backoffice/controller-api
 import { UmbContextToken } from '@umbraco-cms/backoffice/context-api';
 import { UmbApi } from '@umbraco-cms/backoffice/extension-api';
 
-type EntityType = UmbMediaDetailModel;
 export class UmbMediaWorkspaceContext
-	extends UmbEditableWorkspaceContextBase<UmbMediaRepository, EntityType>
+	extends UmbEditableWorkspaceContextBase<UmbMediaDetailRepository, UmbMediaDetailModel>
 	implements UmbSaveableWorkspaceContextInterface, UmbApi
 {
-	#data = new UmbObjectState<EntityType | undefined>(undefined);
+	#data = new UmbObjectState<UmbMediaDetailModel | undefined>(undefined);
 	data = this.#data.asObservable();
 	name = this.#data.asObservablePart((data) => data?.name);
 
 	constructor(host: UmbControllerHostElement) {
-		super(host, 'Umb.Workspace.Media', new UmbMediaRepository(host));
+		super(host, 'Umb.Workspace.Media', new UmbMediaDetailRepository(host));
 	}
 
 	getData() {
@@ -51,7 +50,7 @@ export class UmbMediaWorkspaceContext
 	}
 
 	async load(entityId: string) {
-		const { data } = await this.repository.requestById(entityId);
+		const { data } = await this.repository.requestByUnique(entityId);
 		if (data) {
 			this.setIsNew(false);
 			this.#data.next(data);

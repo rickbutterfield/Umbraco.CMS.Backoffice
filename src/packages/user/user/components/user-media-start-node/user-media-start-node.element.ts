@@ -2,7 +2,7 @@ import { css, html, customElement, property, repeat, state, ifDefined } from '@u
 import { UmbLitElement } from '@umbraco-cms/internal/lit-element';
 import { UmbTextStyles } from '@umbraco-cms/backoffice/style';
 import { MediaItemResponseModel } from '@umbraco-cms/backoffice/backend-api';
-import { UmbMediaRepository } from '@umbraco-cms/backoffice/media';
+import { UmbMediaItemRepository } from '@umbraco-cms/backoffice/media';
 
 @customElement('umb-user-media-start-node')
 export class UmbUserMediaStartNodeElement extends UmbLitElement {
@@ -12,7 +12,7 @@ export class UmbUserMediaStartNodeElement extends UmbLitElement {
 	@state()
 	_displayValue: Array<MediaItemResponseModel> = [];
 
-	#itemRepository = new UmbMediaRepository(this);
+	#itemRepository = new UmbMediaItemRepository(this);
 
 	protected async firstUpdated(): Promise<void> {
 		if (this.ids.length === 0) return;
