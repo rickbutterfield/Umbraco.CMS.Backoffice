@@ -15,6 +15,7 @@ export interface UmbMockMediaModel extends Omit<UmbMockMediaModelHack, 'type'> {
 
 export const data: Array<UmbMockMediaModel> = [
 	{
+		id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
 		parentId: null,
 		name: 'Flipped Car',
 		hasChildren: false,
@@ -40,7 +41,6 @@ export const data: Array<UmbMockMediaModel> = [
 				publishDate: '2024-01-16T06:28:45.451Z',
 			},
 		],
-		id: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
 		contentTypeId: '3fa85f64-5717-4562-b3fc-2c963f66afa6',
 		urls: [
 			{
