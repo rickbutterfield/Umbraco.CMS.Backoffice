@@ -15,6 +15,7 @@ export interface UmbMockMediaModel extends Omit<UmbMockMediaModelHack, 'type'> {
 
 export const data: Array<UmbMockMediaModel> = [
 	{
+		parentId: null,
 		name: 'Flipped Car',
 		hasChildren: false,
 		isContainer: false,
