@@ -11,10 +11,12 @@ import { UmbBooleanState } from '@umbraco-cms/backoffice/observable-api';
 
 type EntityType = UmbDocumentTypeDetailModel;
 export class UmbDocumentTypeWorkspaceContext
-	extends UmbEditableWorkspaceContextBase<UmbDocumentTypeDetailRepository, EntityType>
+	extends UmbEditableWorkspaceContextBase<EntityType>
 	implements UmbSaveableWorkspaceContextInterface
 {
-	// Draft is located in structure manager
+	//
+	readonly repository = new UmbDocumentTypeDetailRepository(this);
+	// Data/Draft is located in structure manager
 
 	// General for content types:
 	readonly data;
@@ -35,15 +37,13 @@ export class UmbDocumentTypeWorkspaceContext
 	readonly defaultTemplateId;
 	readonly cleanup;
 
-	readonly structure;
+	readonly structure = new UmbContentTypePropertyStructureManager<EntityType>(this, this.repository);
 
 	#isSorting = new UmbBooleanState(undefined);
 	isSorting = this.#isSorting.asObservable();
 
 	constructor(host: UmbControllerHostElement) {
-		super(host, 'Umb.Workspace.DocumentType', new UmbDocumentTypeDetailRepository(host));
-
-		this.structure = new UmbContentTypePropertyStructureManager<UmbDocumentTypeDetailModel>(this.host, this.repository);
+		super(host, 'Umb.Workspace.DocumentType');
 
 		// General for content types:
 		this.data = this.structure.ownerContentType;
@@ -126,8 +126,8 @@ export class UmbDocumentTypeWorkspaceContext
 		this.structure.updateOwnerContentType({ defaultTemplateId });
 	}
 
-	async create(parentId: string | null) {
-		const { data } = await this.structure.createScaffold(parentId);
+	async create(parentUnique: string | null) {
+		const { data } = await this.structure.createScaffold(parentUnique);
 		if (!data) return undefined;
 
 		this.setIsNew(true);
@@ -136,8 +136,8 @@ export class UmbDocumentTypeWorkspaceContext
 		return { data } || undefined;
 	}
 
-	async load(entityId: string) {
-		const { data } = await this.structure.loadType(entityId);
+	async load(unique: string) {
+		const { data } = await this.structure.loadType(unique);
 		if (!data) return undefined;
 
 		this.setIsNew(false);

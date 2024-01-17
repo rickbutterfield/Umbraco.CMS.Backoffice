@@ -4,7 +4,7 @@
 /* eslint-disable */
 
 export type PartialViewSnippetItemResponseModel = {
+    id: string;
     name: string;
-    fileName: string;
 };
 
