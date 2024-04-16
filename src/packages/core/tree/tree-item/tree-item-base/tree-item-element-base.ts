@@ -145,12 +145,20 @@ export abstract class UmbTreeItemElementBase<TreeItemModelType extends UmbTreeIt
 		`;
 	}
 
+	renderIcon(icon: string) {
+		return html`<umb-icon slot="icon" name="${icon}"></umb-icon>`;
+	}
+
+	renderLabel() {
+		return html`<slot name="label" slot="label"></slot>`;
+	}
+
 	#renderIcon() {
 		const icon = this._item?.icon;
 		const isFolder = this._item?.isFolder;
 
 		if (icon) {
-			return html`<umb-icon slot="icon" name="${icon}"></umb-icon>`;
+			return this.renderIcon(icon);
 		}
 
 		if (isFolder) {
@@ -158,10 +166,6 @@ export abstract class UmbTreeItemElementBase<TreeItemModelType extends UmbTreeIt
 		}
 
 		return html`<umb-icon slot="icon" name="icon-circle-dotted"></umb-icon>`;
-	}
-
-	renderLabel() {
-		return html`<slot name="label" slot="label"></slot>`;
 	}
 
 	#renderActions() {
