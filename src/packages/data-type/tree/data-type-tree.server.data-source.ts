@@ -1,3 +1,4 @@
+import { UMB_DATA_TYPE_ENTITY_TYPE, UMB_DATA_TYPE_FOLDER_ENTITY_TYPE } from '../entity.js';
 import type { UmbDataTypeTreeItemModel } from './types.js';
 import type {
 	UmbTreeChildrenOfRequestArgs,
@@ -64,7 +65,7 @@ const mapper = (item: DataTypeTreeItemResponseModel): UmbDataTypeTreeItemModel =
 		parentUnique: item.parent?.id || null,
 		icon: 'icon-autofill',
 		name: item.name,
-		entityType: item.isFolder ? 'data-type-folder' : 'data-type',
+		entityType: item.isFolder ? UMB_DATA_TYPE_FOLDER_ENTITY_TYPE : UMB_DATA_TYPE_ENTITY_TYPE,
 		isFolder: item.isFolder,
 		hasChildren: item.hasChildren,
 		propertyEditorUiAlias: item.editorUiAlias || null,
