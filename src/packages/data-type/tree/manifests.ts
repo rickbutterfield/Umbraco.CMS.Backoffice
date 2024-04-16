@@ -1,3 +1,8 @@
+import {
+	UMB_DATA_TYPE_ENTITY_TYPE,
+	UMB_DATA_TYPE_FOLDER_ENTITY_TYPE,
+	UMB_DATA_TYPE_ROOT_ENTITY_TYPE,
+} from '../entity.js';
 import { manifests as folderManifests } from './folder/manifests.js';
 import { manifests as reloadManifests } from './reload-tree-item-children/manifests.js';
 import { UmbDataTypeTreeRepository } from './data-type-tree.repository.js';
@@ -43,7 +48,25 @@ const treeItem: ManifestTreeItem = {
 	kind: 'default',
 	alias: 'Umb.TreeItem.DataType',
 	name: 'Data Type Tree Item',
-	forEntityTypes: ['data-type-root', 'data-type', 'data-type-folder'],
+	element: () => import('./tree-item/data-type-tree-item.element.js'),
+	api: () => import('./tree-item/data-type-tree-item.context.js'),
+	forEntityTypes: [UMB_DATA_TYPE_ENTITY_TYPE, UMB_DATA_TYPE_FOLDER_ENTITY_TYPE],
 };
 
-export const manifests = [treeRepository, treeStore, tree, treeItem, ...folderManifests, ...reloadManifests];
+const treeRootItem: ManifestTreeItem = {
+	type: 'treeItem',
+	kind: 'default',
+	alias: 'Umb.TreeItem.DataType.Root',
+	name: 'Data Type Tree Item',
+	forEntityTypes: [UMB_DATA_TYPE_ROOT_ENTITY_TYPE],
+};
+
+export const manifests = [
+	...folderManifests,
+	...reloadManifests,
+	tree,
+	treeItem,
+	treeRepository,
+	treeRootItem,
+	treeStore,
+];
