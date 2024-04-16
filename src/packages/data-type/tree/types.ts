@@ -3,6 +3,8 @@ import type { UmbUniqueTreeItemModel, UmbUniqueTreeRootModel } from '@umbraco-cm
 
 export interface UmbDataTypeTreeItemModel extends UmbUniqueTreeItemModel {
 	entityType: UmbDataTypeEntityType | UmbDataTypeFolderEntityType;
+	propertyEditorUiAlias: string | null;
+	isDeletable: boolean;
 }
 
 export interface UmbDataTypeTreeRootModel extends UmbUniqueTreeRootModel {
