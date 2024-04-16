@@ -76,5 +76,7 @@ const mapper = (item: DataTypeTreeItemResponseModel): UmbDataTypeTreeItemModel =
 		entityType: item.isFolder ? 'data-type-folder' : 'data-type',
 		isFolder: item.isFolder,
 		hasChildren: item.hasChildren,
+		propertyEditorUiAlias: item.editorUiAlias || null,
+		isDeletable: item.isDeletable,
 	};
 };
