@@ -8,9 +8,6 @@ import { UmbTreeServerDataSourceBase } from '@umbraco-cms/backoffice/tree';
 import type { DataTypeTreeItemResponseModel } from '@umbraco-cms/backoffice/external/backend-api';
 import { DataTypeService } from '@umbraco-cms/backoffice/external/backend-api';
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
-import { type ManifestPropertyEditorUi, umbExtensionsRegistry } from '@umbraco-cms/backoffice/extension-registry';
-
-let manifestPropertyEditorUis: Array<ManifestPropertyEditorUi> = [];
 
 /**
  * A data source for a data type tree that fetches data from the server
@@ -34,12 +31,6 @@ export class UmbDataTypeTreeServerDataSource extends UmbTreeServerDataSourceBase
 			getAncestorsOf,
 			mapper,
 		});
-		umbExtensionsRegistry
-			.byType('propertyEditorUi')
-			.subscribe((manifestPropertyEditorUIs) => {
-				manifestPropertyEditorUis = manifestPropertyEditorUIs;
-			})
-			.unsubscribe();
 	}
 }
 
@@ -71,7 +62,7 @@ const mapper = (item: DataTypeTreeItemResponseModel): UmbDataTypeTreeItemModel =
 	return {
 		unique: item.id,
 		parentUnique: item.parent?.id || null,
-		icon: manifestPropertyEditorUis.find((ui) => ui.alias === item.editorUiAlias)?.meta.icon,
+		icon: 'icon-autofill',
 		name: item.name,
 		entityType: item.isFolder ? 'data-type-folder' : 'data-type',
 		isFolder: item.isFolder,
