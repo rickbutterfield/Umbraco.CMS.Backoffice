@@ -1,5 +1,5 @@
-import type { UmbTemporaryFileModel } from '../../temporary-file/temporary-file-manager.class.js';
-import { UmbTemporaryFileManager } from '../../temporary-file/temporary-file-manager.class.js';
+import type { UmbTemporaryFileModel } from '../../../../core/temporary-file/temporary-file-manager.class.js';
+import { UmbTemporaryFileManager } from '../../../../core/temporary-file/temporary-file-manager.class.js';
 import { UmbId } from '@umbraco-cms/backoffice/id';
 import {
 	css,
