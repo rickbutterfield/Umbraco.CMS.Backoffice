@@ -1,20 +1,20 @@
 const { rest } = window.MockServiceWorker;
 import { umbUserMockDb } from '../../data/user/user.db.js';
 import { UMB_SLUG } from './slug.js';
-import type { UserData } from '@umbraco-cms/backoffice/external/backend-api';
 import { umbracoPath } from '@umbraco-cms/backoffice/utils';
+import type { GetUserCurrentLoginProvidersResponse } from '@umbraco-cms/backoffice/external/backend-api';
 
 export const handlers = [
 	rest.get(umbracoPath(`${UMB_SLUG}/current`), (_req, res, ctx) => {
 		const loggedInUser = umbUserMockDb.getCurrentUser();
 		return res(ctx.status(200), ctx.json(loggedInUser));
 	}),
-	rest.get<UserData['responses']['GetUserCurrentLoginProviders']>(
+	rest.get<GetUserCurrentLoginProvidersResponse>(
 		umbracoPath(`${UMB_SLUG}/current/login-providers`),
 		(_req, res, ctx) => {
 			return res(
 				ctx.status(200),
-				ctx.json<UserData['responses']['GetUserCurrentLoginProviders']>([
+				ctx.json<GetUserCurrentLoginProvidersResponse>([
 					{
 						hasManualLinkingEnabled: true,
 						isLinkedOnUser: true,

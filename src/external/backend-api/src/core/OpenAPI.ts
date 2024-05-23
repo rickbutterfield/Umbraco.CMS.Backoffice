@@ -14,10 +14,7 @@ export class Interceptors<T> {
   eject(fn: Middleware<T>) {
     const index = this._fns.indexOf(fn);
     if (index !== -1) {
-      this._fns = [
-        ...this._fns.slice(0, index),
-        ...this._fns.slice(index + 1),
-      ];
+      this._fns = [...this._fns.slice(0, index), ...this._fns.slice(index + 1)];
     }
   }
 
@@ -36,8 +33,10 @@ export type OpenAPIConfig = {
 	USERNAME?: string | Resolver<string> | undefined;
 	VERSION: string;
 	WITH_CREDENTIALS: boolean;
-	interceptors: {request: Interceptors<RequestInit>;
-		response: Interceptors<Response>;};
+	interceptors: {
+		request: Interceptors<RequestInit>;
+		response: Interceptors<Response>;
+	};
 };
 
 export const OpenAPI: OpenAPIConfig = {
@@ -50,6 +49,8 @@ export const OpenAPI: OpenAPIConfig = {
 	USERNAME: undefined,
 	VERSION: 'Latest',
 	WITH_CREDENTIALS: false,
-	interceptors: {request: new Interceptors(),response: new Interceptors(),
+	interceptors: {
+		request: new Interceptors(),
+		response: new Interceptors(),
 	},
 };
