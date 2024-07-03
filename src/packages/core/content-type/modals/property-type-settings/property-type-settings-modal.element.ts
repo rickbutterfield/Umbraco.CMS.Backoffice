@@ -8,9 +8,9 @@ import type {
 } from './property-type-settings-modal.token.js';
 import { UmbTextStyles } from '@umbraco-cms/backoffice/style';
 import type { UUIBooleanInputEvent, UUIInputEvent, UUISelectEvent } from '@umbraco-cms/backoffice/external/uui';
-import type { PropertyValueMap } from '@umbraco-cms/backoffice/external/lit';
 import { css, html, nothing, customElement, state } from '@umbraco-cms/backoffice/external/lit';
 import { UmbModalBaseElement } from '@umbraco-cms/backoffice/modal';
+import { umbFocus } from '@umbraco-cms/backoffice/lit-element';
 import { generateAlias } from '@umbraco-cms/backoffice/utils';
 import { UMB_CONTENT_TYPE_WORKSPACE_CONTEXT } from '@umbraco-cms/backoffice/content-type';
 // TODO: Could base take a token to get its types? [NL]
@@ -23,25 +23,25 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 	// TODO: Or should they come from a extension point? [NL]
 	@state() private _customValidationOptions: Array<Option> = [
 		{
-			name: 'No validation',
+			name: this.localize.term('validation_validateNothing'),
 			value: '!NOVALIDATION!',
 			selected: true,
 		},
 		{
-			name: 'Validate as an email address',
+			name: this.localize.term('validation_validateAsEmail'),
 			value: '[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\\.[a-zA-Z0-9-.]+',
 		},
 		{
-			name: 'Validate as a number',
+			name: this.localize.term('validation_validateAsNumber'),
 			value: '^[0-9]*$',
 		},
 		{
-			name: 'Validate as an URL',
+			name: this.localize.term('validation_validateAsUrl'),
 			value: 'https?://[a-zA-Z0-9-.]+\\.[a-zA-Z]{2,}',
 		},
 		{
-			name: '...or enter a custom validation',
-			value: '',
+			name: this.localize.term('validation_enterCustomValidation'),
+			value: '.+',
 		},
 	];
 
@@ -52,19 +52,22 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 	/** Indicates if the currently edited property is a new property or an existing */
 	#isNew = false;
 
-	#context = new UmbPropertyTypeWorkspaceContext(this);
-
 	@state()
 	private _contentTypeVariesByCulture?: boolean;
 
 	@state()
 	private _contentTypeVariesBySegment?: boolean;
 
-	connectedCallback(): void {
+	override connectedCallback(): void {
 		super.connectedCallback();
 
 		this.consumeContext(UMB_CONTENT_TYPE_WORKSPACE_CONTEXT, (instance) => {
-			if (!this.data?.contentTypeId) return;
+			if (!this.data?.contentTypeId || instance.getUnique() !== this.data.contentTypeId) {
+				// We can currently only edit properties that are part of a content type workspace, which has to be present outside of the modal. [NL]
+				throw new Error(
+					'The content type workspace context does not match the content type id of the property type settings modal.',
+				);
+			}
 
 			this.observe(instance.variesByCulture, (variesByCulture) => (this._contentTypeVariesByCulture = variesByCulture));
 			this.observe(instance.variesBySegment, (variesBySegment) => (this._contentTypeVariesBySegment = variesBySegment));
@@ -80,25 +83,12 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 				return option.selected;
 			});
 			if (newlySelected === undefined) {
-				this._customValidationOptions[4].selected = true;
-				this.updateValue({
-					validation: { ...this.value.validation, regEx: this._customValidationOptions[4].value },
-				});
-			} else {
-				this.updateValue({
-					validation: { ...this.value.validation, regEx: regEx },
-				});
+				this._customValidationOptions[this._customValidationOptions.length - 1].selected = true;
 			}
+			this.updateValue({
+				validation: { ...this.value.validation, regEx },
+			});
 		}
-	}
-
-	protected firstUpdated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
-		super.firstUpdated(_changedProperties);
-
-		// TODO: Make a general way to put focus on a input in a modal. (also make sure it only happens if its the top-most-modal.) [NL]
-		requestAnimationFrame(() => {
-			(this.shadowRoot!.querySelector('#name-input') as HTMLElement).focus();
-		});
 	}
 
 	#onSubmit(event: SubmitEvent) {
@@ -142,7 +132,6 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 
 	#onMandatoryChange(event: UUIBooleanInputEvent) {
 		const mandatory = event.target.checked;
-		this.value.validation!.mandatory = mandatory;
 		this.updateValue({
 			validation: { ...this.value.validation, mandatory },
 		});
@@ -180,10 +169,6 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 		const value = event.target.value.toString();
 		const regEx = value !== '!NOVALIDATION!' ? value : null;
 
-		this._customValidationOptions.forEach((option) => {
-			option.selected = option.value === regEx;
-		});
-		this.requestUpdate('_customValidationOptions');
 		this.updateValue({
 			validation: { ...this.value.validation, regEx },
 		});
@@ -221,7 +206,7 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 	// TODO: This would conceptually be a Property Type Workspace, should be changed at one point in the future. [NL]
 	// For now this is hacky made available by giving the element an fixed alias. [NL]
 	// This would allow for workspace views and workspace actions. [NL]
-	render() {
+	override render() {
 		return html`
 			<uui-form>
 				<form @submit="${this.#onSubmit}">
@@ -237,10 +222,11 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 									<uui-input
 										id="name-input"
 										name="name"
-										label="property name (TODO: Localize)"
+										label=${this.localize.term('placeholders_entername')}
 										@input=${this.#onNameChange}
 										.value=${this.value.name}
-										placeholder="Enter a name...">
+										placeholder=${this.localize.term('placeholders_entername')}
+										${umbFocus()}>
 										<!-- TODO: validation for bad characters -->
 									</uui-input>
 									<uui-input
@@ -248,7 +234,8 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 										name="alias"
 										@input=${this.#onAliasChange}
 										.value=${this.value.alias}
-										placeholder="Enter alias..."
+										label=${this.localize.term('placeholders_enterAlias')}
+										placeholder=${this.localize.term('placeholders_enterAlias')}
 										?disabled=${this._aliasLocked}>
 										<!-- TODO: validation for bad characters -->
 										<div @click=${this.#onToggleAliasLock} @keydown=${() => ''} id="alias-lock" slot="prepend">
@@ -259,7 +246,8 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 										id="description-input"
 										name="description"
 										@input=${this.#onDescriptionChange}
-										placeholder="Enter description..."
+										label=${this.localize.term('placeholders_enterDescription')}
+										placeholder=${this.localize.term('placeholders_enterDescription')}
 										.value=${this.value.description}></uui-textarea>
 								</div>
 								<umb-data-type-flow-input
@@ -267,15 +255,19 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 									@change=${this.#onDataTypeIdChange}></umb-data-type-flow-input>
 								<hr />
 								<div class="container">
-									<b>Validation</b>
+									<b><umb-localize key="validation_validation">Validation</umb-localize></b>
 									${this.#renderMandatory()}
-									<p style="margin-bottom: 0">Custom validation</p>
+									<p style="margin-bottom: 0">
+										<umb-localize key="validation_customValidation">Custom validation</umb-localize>
+									</p>
 									${this.#renderCustomValidation()}
 								</div>
 								<hr />
 								${this.#renderVariationControls()}
 								<div class="container">
-									<b style="margin-bottom: var(--uui-size-space-3)">Appearance</b>
+									<b style="margin-bottom: var(--uui-size-space-3)">
+										<umb-localize key="contentTypeEditor_displaySettingsHeadline">Appearance</umb-localize>
+									</b>
 									<div id="appearances">${this.#renderAlignLeftIcon()} ${this.#renderAlignTopIcon()}</div>
 								</div>
 							</uui-box>
@@ -303,7 +295,9 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 				<rect y="22" width="64" height="9" rx="4" fill="currentColor" fill-opacity="0.4" />
 				<rect x="106" width="94" height="60" rx="5" fill="currentColor" fill-opacity="0.4" />
 			</svg>
-			<label class="appearance-label"> Label on the left </label>
+			<label class="appearance-label">
+				<umb-localize key="contentTypeEditor_displaySettingsLabelOnLeft">Label to the left</umb-localize>
+			</label>
 		</button>`;
 	}
 
@@ -318,14 +312,18 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 					<rect y="22" width="64" height="9" rx="4" fill="currentColor" fill-opacity="0.4" />
 					<rect y="42" width="140" height="36" rx="5" fill="currentColor" fill-opacity="0.4" />
 				</svg>
-				<label class="appearance-label"> Label on top </label>
+				<label class="appearance-label">
+					<umb-localize key="contentTypeEditor_displaySettingsLabelOnTop">Label above (full-width)</umb-localize>
+				</label>
 			</button>
 		`;
 	}
 
 	#renderMandatory() {
 		return html`<div style="display: flex; justify-content: space-between">
-				<label for="mandatory">Field is mandatory</label>
+				<label for="mandatory">
+					<umb-localize key="validation_fieldIsMandatory">Field is mandatory</umb-localize>
+				</label>
 				<uui-toggle
 					@change=${this.#onMandatoryChange}
 					id="mandatory"
@@ -339,7 +337,8 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 						@change=${this.#onMandatoryMessageChange}
 						style="margin-top: var(--uui-size-space-1)"
 						id="mandatory-message"
-						placeholder="Enter a custom validation error message (optional)"></uui-input>`
+						placeholder=${this.localize.term('validation_mandatoryMessage')}
+						label=${this.localize.term('validation_mandatoryMessage')}></uui-input>`
 				: ''}`;
 	}
 
@@ -355,10 +354,14 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 							name="pattern"
 							style="margin-bottom: var(--uui-size-space-1); margin-top: var(--uui-size-space-5);"
 							@change=${this.#onValidationRegExChange}
+							placeholder=${this.localize.term('validation_validationRegExp')}
+							label=${this.localize.term('validation_validationRegExp')}
 							.value=${this.value.validation?.regEx ?? ''}></uui-input>
 						<uui-textarea
 							name="pattern-message"
 							@change=${this.#onValidationMessageChange}
+							placeholder=${this.localize.term('validation_validationRegExpMessage')}
+							label=${this.localize.term('validation_validationRegExpMessage')}
 							.value=${this.value.validation?.regExMessage ?? ''}></uui-textarea>
 					`
 				: nothing} `;
@@ -367,7 +370,7 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 	#renderVariationControls() {
 		return this._contentTypeVariesByCulture || this._contentTypeVariesBySegment
 			? html` <div class="container">
-						<b>Variation</b>
+						<b><umb-localize key="contentTypeEditor_variantsHeading">Allow variations</umb-localize></b>
 						${this._contentTypeVariesByCulture ? this.#renderVaryByCulture() : ''}
 					</div>
 					<hr />`
@@ -377,10 +380,10 @@ export class UmbPropertyTypeSettingsModalElement extends UmbModalBaseElement<
 		return html`<uui-toggle
 			@change=${this.#onVaryByCultureChange}
 			.checked=${this.value.variesByCulture ?? false}
-			label="Vary by culture"></uui-toggle> `;
+			label=${this.localize.term('contentTypeEditor_cultureVariantLabel')}></uui-toggle> `;
 	}
 
-	static styles = [
+	static override styles = [
 		UmbTextStyles,
 		css`
 			:host {

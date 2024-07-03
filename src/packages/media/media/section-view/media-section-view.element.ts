@@ -52,6 +52,10 @@ export class UmbMediaSectionViewElement extends UmbLitElement {
 						path: '',
 						redirectTo: 'collection',
 					},
+					{
+						path: `**`,
+						component: async () => (await import('@umbraco-cms/backoffice/router')).UmbRouteNotFoundElement,
+					},
 				];
 			},
 			'_observeConfigDataType',
@@ -60,24 +64,25 @@ export class UmbMediaSectionViewElement extends UmbLitElement {
 
 	#mapDataTypeConfigToCollectionConfig(dataType: UmbDataTypeDetailModel): UmbCollectionConfiguration {
 		const config = new UmbPropertyEditorConfigCollection(dataType.values);
+		const pageSize = Number(config.getValueByAlias('pageSize'));
 		return {
 			unique: '',
 			dataTypeId: '',
 			allowedEntityBulkActions: config?.getValueByAlias<UmbCollectionBulkActionPermissions>('bulkActionPermissions'),
+			layouts: config?.getValueByAlias('layouts'),
 			orderBy: config?.getValueByAlias('orderBy') ?? 'updateDate',
 			orderDirection: config?.getValueByAlias('orderDirection') ?? 'asc',
-			pageSize: Number(config?.getValueByAlias('pageSize')) ?? 50,
-			useInfiniteEditor: config?.getValueByAlias('useInfiniteEditor') ?? false,
+			pageSize: isNaN(pageSize) ? 50 : pageSize,
 			userDefinedProperties: config?.getValueByAlias('includeProperties'),
 		};
 	}
 
-	render() {
+	override render() {
 		if (!this._routes) return;
 		return html`<umb-router-slot id="router-slot" .routes=${this._routes}></umb-router-slot>`;
 	}
 
-	static styles = [
+	static override styles = [
 		css`
 			:host {
 				height: 100%;

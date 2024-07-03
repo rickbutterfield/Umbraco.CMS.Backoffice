@@ -1,4 +1,3 @@
-import { expect, fixture } from '@open-wc/testing';
 import type {
 	ManifestCondition,
 	ManifestKind,
@@ -10,6 +9,7 @@ import type { UmbExtensionCondition } from '../condition/extension-condition.int
 import type { UmbControllerHostElement } from '../../controller-api/controller-host-element.interface.js';
 import { UmbControllerHostElementMixin } from '../../controller-api/controller-host-element.mixin.js';
 import { UmbBaseExtensionInitializer } from './index.js';
+import { expect, fixture } from '@open-wc/testing';
 import { UmbControllerBase } from '@umbraco-cms/backoffice/class-api';
 import { customElement, html } from '@umbraco-cms/backoffice/external/lit';
 import { UmbSwitchCondition } from '@umbraco-cms/backoffice/extension-registry';
@@ -601,16 +601,16 @@ describe('UmbBaseExtensionController', () => {
 						expect(isPermitted).to.be.true;
 						expect(extensionController?.permitted).to.be.true;
 						// Hack to double check that its two conditions that make up the state:
-						expect(extensionController.getControllers((controller) => (controller as any).permitted).length).to.equal(
-							2,
-						);
+						expect(
+							extensionController.getUmbControllers((controller) => (controller as any).permitted).length,
+						).to.equal(2);
 					} else if (count === 2) {
 						expect(isPermitted).to.be.false;
 						expect(extensionController?.permitted).to.be.false;
 						// Hack to double check that its two conditions that make up the state, in this case its one, cause we already got the callback when one of the conditions changed. meaning in this split second one is still good:
-						expect(extensionController.getControllers((controller) => (controller as any).permitted).length).to.equal(
-							1,
-						);
+						expect(
+							extensionController.getUmbControllers((controller) => (controller as any).permitted).length,
+						).to.equal(1);
 
 						// Then we are done:
 						extensionController.destroy(); // End this test.

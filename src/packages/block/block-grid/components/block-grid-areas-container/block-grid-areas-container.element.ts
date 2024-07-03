@@ -1,7 +1,7 @@
-import { UMB_BLOCK_GRID_MANAGER_CONTEXT } from '../../context/block-grid-manager.context.js';
+import { UMB_BLOCK_GRID_MANAGER_CONTEXT } from '../../context/block-grid-manager.context-token.js';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import { UMB_BLOCK_GRID_ENTRY_CONTEXT, type UmbBlockGridTypeAreaType } from '@umbraco-cms/backoffice/block-grid';
 import { css, customElement, html, repeat, state } from '@umbraco-cms/backoffice/external/lit';
+import { UMB_BLOCK_GRID_ENTRY_CONTEXT, type UmbBlockGridTypeAreaType } from '@umbraco-cms/backoffice/block-grid';
 
 import '../block-grid-entries/index.js';
 /**
@@ -53,7 +53,7 @@ export class UmbBlockGridAreasContainerElement extends UmbLitElement {
 		});
 	}
 
-	render() {
+	override render() {
 		return this._areas && this._areas.length > 0
 			? html` ${this.#styleElement}
 					<div
@@ -73,7 +73,7 @@ export class UmbBlockGridAreasContainerElement extends UmbLitElement {
 			: '';
 	}
 
-	static styles = [
+	static override styles = [
 		css`
 			:host {
 				display: block;

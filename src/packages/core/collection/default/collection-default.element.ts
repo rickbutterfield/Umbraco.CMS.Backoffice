@@ -1,9 +1,9 @@
-import { UMB_DEFAULT_COLLECTION_CONTEXT, UmbDefaultCollectionContext } from './collection-default.context.js';
+import { UmbDefaultCollectionContext } from './collection-default.context.js';
+import { UMB_COLLECTION_CONTEXT } from './collection-default.context-token.js';
 import { css, html, customElement, state } from '@umbraco-cms/backoffice/external/lit';
 import { umbExtensionsRegistry } from '@umbraco-cms/backoffice/extension-registry';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
 import { UmbTextStyles } from '@umbraco-cms/backoffice/style';
-import type { PropertyValueMap } from '@umbraco-cms/backoffice/external/lit';
 import type { UmbBackofficeManifestKind } from '@umbraco-cms/backoffice/extension-registry';
 import type { UmbRoute } from '@umbraco-cms/backoffice/router';
 
@@ -30,15 +30,11 @@ export class UmbCollectionDefaultElement extends UmbLitElement {
 
 	constructor() {
 		super();
-		this.consumeContext(UMB_DEFAULT_COLLECTION_CONTEXT, (context) => {
+		this.consumeContext(UMB_COLLECTION_CONTEXT, (context) => {
 			this.#collectionContext = context;
+			this.#collectionContext?.requestCollection();
 			this.#observeCollectionRoutes();
 		});
-	}
-
-	protected firstUpdated(_changedProperties: PropertyValueMap<any> | Map<PropertyKey, unknown>): void {
-		super.firstUpdated(_changedProperties);
-		this.#collectionContext?.requestCollection();
 	}
 
 	#observeCollectionRoutes() {
@@ -53,11 +49,11 @@ export class UmbCollectionDefaultElement extends UmbLitElement {
 		);
 	}
 
-	render() {
+	override render() {
 		return html`
 			<umb-body-layout header-transparent>
 				${this.renderToolbar()}
-				<umb-router-slot id="router-slot" .routes="${this._routes}"></umb-router-slot>
+				<umb-router-slot id="router-slot" .routes=${this._routes}></umb-router-slot>
 				${this.renderPagination()} ${this.renderSelectionActions()}
 			</umb-body-layout>
 		`;
@@ -75,7 +71,7 @@ export class UmbCollectionDefaultElement extends UmbLitElement {
 		return html`<umb-collection-selection-actions slot="footer"></umb-collection-selection-actions>`;
 	}
 
-	static styles = [
+	static override styles = [
 		UmbTextStyles,
 		css`
 			:host {

@@ -1,4 +1,3 @@
-import { handlers as auditLogHandlers } from './handlers/audit-log.handlers.js';
 import { handlers as configHandlers } from './handlers/config.handlers.js';
 import { handlers as cultureHandlers } from './handlers/culture.handlers.js';
 import { handlers as dataTypeHandlers } from './handlers/data-type/index.js';
@@ -36,9 +35,9 @@ import { handlers as userGroupsHandlers } from './handlers/user-group/index.js';
 import { handlers as userHandlers } from './handlers/user/index.js';
 import * as manifestsHandlers from './handlers/manifests.handlers.js';
 import * as serverHandlers from './handlers/server.handlers.js';
+import { handlers as documentBlueprintHandlers } from './handlers/document-blueprint/index.js';
 
 const handlers = [
-	...auditLogHandlers,
 	...configHandlers,
 	...cultureHandlers,
 	...dataTypeHandlers,
@@ -74,6 +73,7 @@ const handlers = [
 	...upgradeHandlers,
 	...userGroupsHandlers,
 	...userHandlers,
+	...documentBlueprintHandlers,
 	serverHandlers.serverInformationHandler,
 ];
 
@@ -90,11 +90,11 @@ switch (import.meta.env.VITE_UMBRACO_INSTALL_STATUS) {
 
 switch (import.meta.env.VITE_UMBRACO_EXTENSION_MOCKS) {
 	case 'on':
-		handlers.push(manifestsHandlers.manifestDevelopmentHandler);
+		handlers.push(...manifestsHandlers.manifestDevelopmentHandlers);
 		break;
 
 	default:
-		handlers.push(manifestsHandlers.manifestEmptyHandler);
+		handlers.push(...manifestsHandlers.manifestEmptyHandlers);
 }
 
 export { handlers };

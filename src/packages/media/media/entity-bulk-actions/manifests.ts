@@ -1,8 +1,8 @@
-import type { UmbCollectionBulkActionPermissions } from '../../../core/collection/types.js';
 import { UMB_MEDIA_COLLECTION_ALIAS } from '../collection/index.js';
 import { UmbMediaMoveEntityBulkAction } from './move/move.action.js';
 import { UmbDuplicateMediaEntityBulkAction } from './duplicate/duplicate.action.js';
 import { UmbMediaDeleteEntityBulkAction } from './delete/delete.action.js';
+import type { UmbCollectionBulkActionPermissions } from '@umbraco-cms/backoffice/collection';
 import type { ManifestTypes } from '@umbraco-cms/backoffice/extension-registry';
 import {
 	UMB_COLLECTION_ALIAS_CONDITION,
@@ -32,7 +32,7 @@ export const manifests: Array<ManifestTypes> = [
 	},
 	{
 		type: 'entityBulkAction',
-		alias: 'Umb.EntityBulkAction.Media.Move',
+		alias: 'Umb.EntityBulkAction.Media.MoveTo',
 		name: 'Move Media Entity Bulk Action',
 		weight: 20,
 		api: UmbMediaMoveEntityBulkAction,

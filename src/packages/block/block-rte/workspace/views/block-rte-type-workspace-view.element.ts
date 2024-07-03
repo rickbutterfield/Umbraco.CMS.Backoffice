@@ -5,22 +5,17 @@ import type { UmbWorkspaceViewElement } from '@umbraco-cms/backoffice/extension-
 
 @customElement('umb-block-rte-type-workspace-view-settings')
 export class UmbBlockRteTypeWorkspaceViewSettingsElement extends UmbLitElement implements UmbWorkspaceViewElement {
-	render() {
+	override render() {
 		return html`
-			<h5>for RTE blocks</h5>
 			<uui-box headline="Editor Appearance">
 				<umb-property
 					label="Label"
 					alias="label"
 					property-editor-ui-alias="Umb.PropertyEditorUi.TextBox"></umb-property>
 				<umb-property
-					label="Custom view"
-					alias="view"
-					property-editor-ui-alias="Umb.PropertyEditorUi.StaticFilePicker"></umb-property>
-				<umb-property
-					label="Custom stylesheet"
-					alias="stylesheet"
-					property-editor-ui-alias="Umb.PropertyEditorUi.StaticFilePicker"></umb-property>
+					label="Display Inline"
+					alias="displayInline"
+					property-editor-ui-alias="Umb.PropertyEditorUi.Toggle"></umb-property>
 				<umb-property
 					label="Overlay size"
 					alias="editorSize"
@@ -75,7 +70,7 @@ export class UmbBlockRteTypeWorkspaceViewSettingsElement extends UmbLitElement i
 		`;
 	}
 
-	static styles = [
+	static override styles = [
 		UmbTextStyles,
 		css`
 			:host {

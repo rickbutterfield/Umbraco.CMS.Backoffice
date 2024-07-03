@@ -34,9 +34,11 @@ export class UmbRelationTypeWorkspaceEditorElement extends UmbLitElement {
 		});
 	}
 
-	render() {
+	override render() {
 		return html`
-			<umb-workspace-editor alias="Umb.Workspace.RelationType">
+			<umb-workspace-editor
+				alias="Umb.Workspace.RelationType"
+				back-path="section/settings/workspace/relation-type-root">
 				<div id="header" slot="header">
 					<uui-input id="name" .value=${this._name} readonly>
 						<div id="alias" slot="append">${this._alias}</div>
@@ -46,7 +48,7 @@ export class UmbRelationTypeWorkspaceEditorElement extends UmbLitElement {
 		`;
 	}
 
-	static styles = [
+	static override styles = [
 		css`
 			:host {
 				display: block;

@@ -34,18 +34,24 @@ export class UmbIconElement extends UmbLitElement {
 	@property({ type: String })
 	public set name(value: string | undefined) {
 		const [icon, alias] = value ? value.split(' ') : [];
-		if (alias) this.#setColorStyle(alias);
+
+		if (alias) {
+			this.#setColorStyle(alias);
+		} else {
+			this._color = undefined;
+		}
+
 		this._icon = icon;
 	}
 	public get name(): string | undefined {
 		return this._icon;
 	}
 
-	render() {
+	override render() {
 		return html`<uui-icon name=${ifDefined(this._icon)} style=${ifDefined(this._color)}></uui-icon>`;
 	}
 
-	static styles = [
+	static override styles = [
 		UmbTextStyles,
 		css`
 			:host {

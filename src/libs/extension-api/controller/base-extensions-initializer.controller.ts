@@ -183,14 +183,15 @@ export abstract class UmbBaseExtensionsInitializer<
 		}
 	}
 
-	hostDisconnected(): void {
+	override hostDisconnected(): void {
 		super.hostDisconnected();
 		if (this.#changeDebounce) {
+			cancelAnimationFrame(this.#changeDebounce);
 			this.#notifyChange();
 		}
 	}
 
-	public destroy() {
+	public override destroy() {
 		// The this.#extensionRegistry is an indication of wether this is already destroyed.
 		if (!this.#extensionRegistry) return;
 

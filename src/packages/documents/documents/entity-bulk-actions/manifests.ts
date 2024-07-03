@@ -1,4 +1,3 @@
-import type { UmbCollectionBulkActionPermissions } from '../../../core/collection/types.js';
 import { UMB_DOCUMENT_COLLECTION_ALIAS } from '../collection/index.js';
 import { UMB_DOCUMENT_ENTITY_TYPE } from '../entity.js';
 import { UmbDocumentDuplicateEntityBulkAction } from './duplicate/duplicate.action.js';
@@ -6,6 +5,7 @@ import { UmbDocumentDeleteEntityBulkAction } from './delete/delete.action.js';
 import { UmbMoveDocumentEntityBulkAction } from './move/move.action.js';
 import { UmbDocumentPublishEntityBulkAction } from './publish/publish.action.js';
 import { UmbDocumentUnpublishEntityBulkAction } from './unpublish/unpublish.action.js';
+import type { UmbCollectionBulkActionPermissions } from '@umbraco-cms/backoffice/collection';
 import type { ManifestEntityBulkAction } from '@umbraco-cms/backoffice/extension-registry';
 import {
 	UMB_COLLECTION_ALIAS_CONDITION,
@@ -19,7 +19,7 @@ export const manifests: Array<ManifestEntityBulkAction> = [
 		alias: 'Umb.EntityBulkAction.Document.Publish',
 		name: 'Publish Document Entity Bulk Action',
 		weight: 50,
-		api: UmbDocumentPublishEntityBulkAction,
+		api: () => import('./publish/publish.action.js'),
 		meta: {
 			label: 'Publish',
 		},
@@ -41,7 +41,7 @@ export const manifests: Array<ManifestEntityBulkAction> = [
 		alias: 'Umb.EntityBulkAction.Document.Unpublish',
 		name: 'Unpublish Document Entity Bulk Action',
 		weight: 40,
-		api: UmbDocumentUnpublishEntityBulkAction,
+		api: () => import('./unpublish/unpublish.action.js'),
 		meta: {
 			label: 'Unpublish',
 		},
@@ -57,6 +57,7 @@ export const manifests: Array<ManifestEntityBulkAction> = [
 			},
 		],
 	},
+	/* TODO: implement bulk duplicate action
 	{
 		type: 'entityBulkAction',
 		kind: 'default',
@@ -79,10 +80,12 @@ export const manifests: Array<ManifestEntityBulkAction> = [
 			},
 		],
 	},
+	*/
+	/* TODO: implement bulk move action
 	{
 		type: 'entityBulkAction',
 		kind: 'default',
-		alias: 'Umb.EntityBulkAction.Document.Move',
+		alias: 'Umb.EntityBulkAction.Document.MoveTo',
 		name: 'Move Document Entity Bulk Action',
 		weight: 20,
 		api: UmbMoveDocumentEntityBulkAction,
@@ -101,6 +104,8 @@ export const manifests: Array<ManifestEntityBulkAction> = [
 			},
 		],
 	},
+	*/
+	/* TODO: implement bulk trash action
 	{
 		type: 'entityBulkAction',
 		kind: 'default',
@@ -123,4 +128,5 @@ export const manifests: Array<ManifestEntityBulkAction> = [
 			},
 		],
 	},
+	*/
 ];

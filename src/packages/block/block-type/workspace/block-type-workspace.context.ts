@@ -7,17 +7,16 @@ import type {
 	UmbRoutableWorkspaceContext,
 } from '@umbraco-cms/backoffice/workspace';
 import {
-	UmbSaveableWorkspaceContextBase,
+	UmbSubmittableWorkspaceContextBase,
 	UmbInvariantWorkspacePropertyDatasetContext,
 	UmbWorkspaceIsNewRedirectController,
-	UmbWorkspaceRouteManager,
 } from '@umbraco-cms/backoffice/workspace';
 import { UmbArrayState, UmbObjectState, appendToFrozenArray } from '@umbraco-cms/backoffice/observable-api';
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import type { ManifestWorkspace, PropertyEditorSettingsProperty } from '@umbraco-cms/backoffice/extension-registry';
 
 export class UmbBlockTypeWorkspaceContext<BlockTypeData extends UmbBlockTypeWithGroupKey = UmbBlockTypeWithGroupKey>
-	extends UmbSaveableWorkspaceContextBase<BlockTypeData>
+	extends UmbSubmittableWorkspaceContextBase<BlockTypeData>
 	implements UmbInvariantDatasetWorkspaceContext, UmbRoutableWorkspaceContext
 {
 	// Just for context token safety:
@@ -28,13 +27,11 @@ export class UmbBlockTypeWorkspaceContext<BlockTypeData extends UmbBlockTypeWith
 	//readonly data = this.#data.asObservable();
 
 	// TODO: Get the name of the contentElementType..
-	readonly name = this.#data.asObservablePart((data) => 'block');
+	readonly name = this.#data.asObservablePart(() => 'block');
 	readonly unique = this.#data.asObservablePart((data) => data?.contentElementTypeKey);
 
 	#properties = new UmbArrayState<PropertyEditorSettingsProperty>([], (x) => x.alias);
 	readonly properties = this.#properties.asObservable();
-
-	readonly routes = new UmbWorkspaceRouteManager(this);
 
 	constructor(host: UmbControllerHost, args: { manifest: ManifestWorkspace }) {
 		super(host, args.manifest.alias);
@@ -73,7 +70,7 @@ export class UmbBlockTypeWorkspaceContext<BlockTypeData extends UmbBlockTypeWith
 		]);
 	}
 
-	protected resetState() {
+	protected override resetState() {
 		super.resetState();
 		this.#data.setValue(undefined);
 		this.#properties.setValue([]);
@@ -85,28 +82,36 @@ export class UmbBlockTypeWorkspaceContext<BlockTypeData extends UmbBlockTypeWith
 
 	async load(unique: string) {
 		this.resetState();
-		this.consumeContext(UMB_PROPERTY_CONTEXT, (context) => {
-			this.observe(context.value, (value) => {
-				if (value) {
-					const blockTypeData = value.find((x: UmbBlockTypeBaseModel) => x.contentElementTypeKey === unique);
-					if (blockTypeData) {
-						this.#data.setValue(blockTypeData);
-						return;
-					}
+		const context = await this.getContext(UMB_PROPERTY_CONTEXT);
+		this.observe(context.value, (value) => {
+			if (value) {
+				const blockTypeData = value.find((x: UmbBlockTypeBaseModel) => x.contentElementTypeKey === unique);
+				if (blockTypeData) {
+					this.#data.setValue(blockTypeData);
+					return;
 				}
-				// Fallback to undefined:
-				this.#data.setValue(undefined);
-			});
+			}
+			// Fallback to undefined:
+			this.#data.setValue(undefined);
 		});
 	}
 
 	async create(contentElementTypeId: string, groupKey?: string | null) {
 		this.resetState();
-		//Only set groupKey property if it exists
-		const data: BlockTypeData = {
+
+		let data: BlockTypeData = {
 			contentElementTypeKey: contentElementTypeId,
-			...(groupKey && { groupKey: groupKey }),
 		} as BlockTypeData;
+
+		// If we have a modal context, we blend in the modal preset data: [NL]
+		if (this.modalContext) {
+			data = { ...data, ...this.modalContext.data.preset };
+		}
+
+		// Only set groupKey property if it has been parsed to this method
+		if (groupKey) {
+			data.groupKey = groupKey;
+		}
 
 		this.setIsNew(true);
 		this.#data.setValue(data);
@@ -129,7 +134,7 @@ export class UmbBlockTypeWorkspaceContext<BlockTypeData extends UmbBlockTypeWith
 		return 'block name content element type here...';
 	}
 	setName(name: string | undefined) {
-		alert('You cannot set a name of a block-type.');
+		console.warn('You cannot set a name of a block type.');
 	}
 
 	async propertyValueByAlias<ReturnType = unknown>(propertyAlias: string) {
@@ -147,22 +152,23 @@ export class UmbBlockTypeWorkspaceContext<BlockTypeData extends UmbBlockTypeWith
 		}
 	}
 
-	async save() {
-		if (!this.#data.value) return;
+	async submit() {
+		if (!this.#data.value) {
+			throw new Error('No data to submit.');
+		}
 
-		this.consumeContext(UMB_PROPERTY_CONTEXT, (context) => {
-			// TODO: We should most likely consume already, in this way I avoid having the reset this consumption.
-			context.setValue(
-				appendToFrozenArray(context.getValue() ?? [], this.#data.getValue(), (x) => x?.contentElementTypeKey),
-			);
-		});
+		const context = await this.getContext(UMB_PROPERTY_CONTEXT);
+
+		context.setValue(
+			appendToFrozenArray(context.getValue() ?? [], this.#data.getValue(), (x) => x?.contentElementTypeKey),
+		);
 
 		this.setIsNew(false);
-		this.workspaceComplete(this.#data.value);
 	}
 
-	public destroy(): void {
+	public override destroy(): void {
 		this.#data.destroy();
+		this.#properties.destroy();
 		super.destroy();
 	}
 }

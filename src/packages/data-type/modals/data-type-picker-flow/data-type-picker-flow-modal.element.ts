@@ -8,12 +8,19 @@ import type {
 } from './data-type-picker-flow-modal.token.js';
 import { css, html, repeat, customElement, state, when, nothing } from '@umbraco-cms/backoffice/external/lit';
 import { umbExtensionsRegistry } from '@umbraco-cms/backoffice/extension-registry';
-import { UmbModalBaseElement, UmbModalRouteRegistrationController } from '@umbraco-cms/backoffice/modal';
+import { UmbModalBaseElement } from '@umbraco-cms/backoffice/modal';
+import { UmbModalRouteRegistrationController } from '@umbraco-cms/backoffice/router';
 import { UmbTextStyles } from '@umbraco-cms/backoffice/style';
 import type { ManifestPropertyEditorUi } from '@umbraco-cms/backoffice/extension-registry';
 import type { UmbDataTypeItemModel } from '@umbraco-cms/backoffice/data-type';
-import type { UmbModalRouteBuilder } from '@umbraco-cms/backoffice/modal';
+import type { UmbModalRouteBuilder } from '@umbraco-cms/backoffice/router';
 import type { UUIInputEvent } from '@umbraco-cms/backoffice/external/uui';
+import { umbFocus } from '@umbraco-cms/backoffice/lit-element';
+import {
+	UMB_CONTENT_TYPE_WORKSPACE_CONTEXT,
+	UMB_PROPERTY_TYPE_WORKSPACE_CONTEXT,
+} from '@umbraco-cms/backoffice/content-type';
+import { UmbPaginationManager, debounce } from '@umbraco-cms/backoffice/utils';
 
 interface GroupedItems<T> {
 	[key: string]: Array<T>;
@@ -23,7 +30,9 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 	UmbDataTypePickerFlowModalData,
 	UmbDataTypePickerFlowModalValue
 > {
-	public set data(value: UmbDataTypePickerFlowModalData) {
+	#initPromise!: Promise<unknown>;
+
+	public override set data(value: UmbDataTypePickerFlowModalData) {
 		super.data = value;
 		this._submitLabel = this.data?.submitLabel ?? this._submitLabel;
 	}
@@ -38,9 +47,14 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 	private _submitLabel = 'Select';
 
 	@state()
+	private _currentPage = 1;
+
+	@state()
 	private _dataTypePickerModalRouteBuilder?: UmbModalRouteBuilder;
 
-	private _createDataTypeModal: UmbModalRouteRegistrationController;
+	pagination = new UmbPaginationManager();
+
+	private _createDataTypeModal!: UmbModalRouteRegistrationController;
 
 	#collectionRepository;
 	#dataTypes: Array<UmbDataTypeItemModel> = [];
@@ -51,6 +65,31 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 		super();
 
 		this.#collectionRepository = new UmbDataTypeCollectionRepository(this);
+		this.#init();
+	}
+
+	private _createDataType(propertyEditorUiAlias: string) {
+		// TODO: Could be nice with a more pretty way to prepend to the URL:
+		// Open create modal:
+		this._createDataTypeModal.open(
+			{ uiAlias: propertyEditorUiAlias },
+			`create/parent/${UMB_DATA_TYPE_ENTITY_TYPE}/null`,
+		);
+	}
+
+	async #init() {
+		this.pagination.setCurrentPageNumber(1);
+		this.pagination.setPageSize(100);
+
+		this.#initPromise = Promise.all([
+			this.observe(umbExtensionsRegistry.byType('propertyEditorUi'), (propertyEditorUIs) => {
+				// Only include Property Editor UIs which has Property Editor Schema Alias
+				this.#propertyEditorUIs = propertyEditorUIs.filter(
+					(propertyEditorUi) => !!propertyEditorUi.meta.propertyEditorSchemaAlias,
+				);
+				this._performFiltering();
+			}).asPromise(),
+		]);
 
 		new UmbModalRouteRegistrationController(this, UMB_DATA_TYPE_PICKER_FLOW_DATA_TYPE_PICKER_MODAL)
 			.addAdditionalPath(':uiAlias')
@@ -77,43 +116,50 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 
 		this._createDataTypeModal = new UmbModalRouteRegistrationController(this, UMB_DATATYPE_WORKSPACE_MODAL)
 			.addAdditionalPath(':uiAlias')
-			.onSetup((params) => {
-				return { data: { entityType: UMB_DATA_TYPE_ENTITY_TYPE, preset: { editorUiAlias: params.uiAlias } } };
+			.onSetup(async (params) => {
+				const contentContextConsumer = this.consumeContext(UMB_CONTENT_TYPE_WORKSPACE_CONTEXT, () => {
+					this.removeUmbController(contentContextConsumer);
+				}).passContextAliasMatches();
+				const propContextConsumer = this.consumeContext(UMB_PROPERTY_TYPE_WORKSPACE_CONTEXT, () => {
+					this.removeUmbController(propContextConsumer);
+				}).passContextAliasMatches();
+				const [contentContext, propContext] = await Promise.all([
+					contentContextConsumer.asPromise(),
+					propContextConsumer.asPromise(),
+					this.#initPromise,
+				]);
+				const propertyEditorName = this.#propertyEditorUIs.find((ui) => ui.alias === params.uiAlias)?.name;
+				const dataTypeName = `${contentContext?.getName() ?? ''} - ${propContext.getLabel() ?? ''} - ${propertyEditorName}`;
+
+				return {
+					data: {
+						entityType: UMB_DATA_TYPE_ENTITY_TYPE,
+						preset: { editorUiAlias: params.uiAlias, name: dataTypeName },
+					},
+				};
 			})
 			.onSubmit((value) => {
 				this._select(value?.unique);
 				this._submitModal();
 			});
-
-		this.#init();
 	}
 
-	private _createDataType(propertyEditorUiAlias: string) {
-		// TODO: Could be nice with a more pretty way to prepend to the URL:
-		// Open create modal:
-		this._createDataTypeModal.open(
-			{ uiAlias: propertyEditorUiAlias },
-			`create/parent/${UMB_DATA_TYPE_ENTITY_TYPE}/null`,
-		);
-	}
+	async #getDataTypes() {
+		this.pagination.setCurrentPageNumber(this._currentPage);
 
-	async #init() {
-		this.observe(
-			(await this.#collectionRepository.requestCollection({ skip: 0, take: 100 })).asObservable(),
-			(dataTypes) => {
-				this.#dataTypes = dataTypes;
-				this._performFiltering();
-			},
-			'_repositoryItemsObserver',
-		);
-
-		this.observe(umbExtensionsRegistry.byType('propertyEditorUi'), (propertyEditorUIs) => {
-			// Only include Property Editor UIs which has Property Editor Schema Alias
-			this.#propertyEditorUIs = propertyEditorUIs.filter(
-				(propertyEditorUi) => !!propertyEditorUi.meta.propertyEditorSchemaAlias,
-			);
-			this._performFiltering();
+		const { data } = await this.#collectionRepository.requestCollection({
+			skip: this.pagination.getSkip(),
+			take: this.pagination.getPageSize(),
+			name: this.#currentFilterQuery,
 		});
+
+		this.pagination.setTotalItems(data?.total ?? 0);
+
+		if (this.pagination.getCurrentPageNumber() > 1) {
+			this.#dataTypes = [...this.#dataTypes, ...(data?.items ?? [])];
+		} else {
+			this.#dataTypes = data?.items ?? [];
+		}
 	}
 
 	private _handleDataTypeClick(dataType: UmbDataTypeItemModel) {
@@ -127,11 +173,26 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 		this.value = { selection: unique ? [unique] : [] };
 	}
 
-	private _handleFilterInput(event: UUIInputEvent) {
-		const query = (event.target.value as string) || '';
-		this.#currentFilterQuery = query.toLowerCase();
+	async #onLoadMore() {
+		this._currentPage = this._currentPage + 1;
+		this.#handleFiltering();
+	}
+
+	#onFilterInput(event: UUIInputEvent) {
+		this.#currentFilterQuery = (event.target.value as string).toLocaleLowerCase();
+		this.#debouncedFilterInput();
+	}
+
+	#debouncedFilterInput = debounce(() => {
+		this._currentPage = 1;
+		this.#handleFiltering();
+	}, 250);
+
+	async #handleFiltering() {
+		await this.#getDataTypes();
 		this._performFiltering();
 	}
+
 	private _performFiltering() {
 		if (this.#currentFilterQuery) {
 			const filteredDataTypes = this.#dataTypes.filter((dataType) =>
@@ -166,7 +227,7 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 		);
 	}
 
-	render() {
+	override render() {
 		return html`
 			<umb-body-layout headline="Select editor" class="uui-text">
 				<uui-box> ${this._renderFilter()} ${this._renderGrid()} </uui-box>
@@ -185,9 +246,10 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 		return html` <uui-input
 			type="search"
 			id="filter"
-			@input="${this._handleFilterInput}"
+			@input="${this.#onFilterInput}"
 			placeholder="Type to filter..."
-			label="Type to filter icons">
+			label="Type to filter icons"
+			${umbFocus()}>
 			<uui-icon name="search" slot="prepend" id="filter-icon"></uui-icon>
 		</uui-input>`;
 	}
@@ -209,7 +271,7 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 				dataTypesEntries.length > 0,
 				() =>
 					html` <h5 class="choice-type-headline">Available configurations</h5>
-						${this._renderDataTypes()}`,
+						${this._renderDataTypes()}${this.#renderLoadMore()}`,
 			)}
 			${when(
 				editorUIEntries.length > 0,
@@ -218,6 +280,11 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 						${this._renderUIs()}`,
 			)}
 		`;
+	}
+
+	#renderLoadMore() {
+		if (this._currentPage >= this.pagination.getTotalPages()) return;
+		return html`<uui-button @click=${this.#onLoadMore} look="secondary" label="Load more"></uui-button>`;
 	}
 
 	private _renderDataTypes() {
@@ -286,7 +353,7 @@ export class UmbDataTypePickerFlowModalElement extends UmbModalBaseElement<
 		</ul>`;
 	}
 
-	static styles = [
+	static override styles = [
 		UmbTextStyles,
 		css`
 			#filter {

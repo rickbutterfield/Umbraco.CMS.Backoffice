@@ -1,17 +1,20 @@
-import { UMB_TEMPLATING_SECTION_PICKER_MODAL } from '../../modals/templating-section-picker/templating-section-picker-modal.token.js';
-import type { UmbTemplatingInsertMenuElement } from '../../components/templating-item-menu/templating-item-menu.element.js';
-import { UMB_TEMPLATE_QUERY_BUILDER_MODAL } from '../modals/query-builder/index.js';
-import { getQuerySnippet } from '../../utils/index.js';
-import { UMB_TEMPLATE_WORKSPACE_CONTEXT } from './template-workspace.context-token.js';
-import type { UmbCodeEditorElement } from '@umbraco-cms/backoffice/code-editor';
 import { toCamelCase } from '@umbraco-cms/backoffice/utils';
 import type { UUIInputElement } from '@umbraco-cms/backoffice/external/uui';
 import { css, html, customElement, query, state, nothing, ifDefined } from '@umbraco-cms/backoffice/external/lit';
 import type { UmbModalManagerContext } from '@umbraco-cms/backoffice/modal';
 import { UMB_MODAL_MANAGER_CONTEXT } from '@umbraco-cms/backoffice/modal';
-import { UMB_TEMPLATE_PICKER_MODAL } from '@umbraco-cms/backoffice/template';
-import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
+import { UmbLitElement, umbFocus } from '@umbraco-cms/backoffice/lit-element';
 import { Subject, debounceTime } from '@umbraco-cms/backoffice/external/rxjs';
+import { UMB_TEMPLATING_SECTION_PICKER_MODAL } from '../../modals/templating-section-picker/templating-section-picker-modal.token.js';
+import type { UmbTemplatingInsertMenuElement } from '../../local-components/insert-menu/insert-menu.element.js';
+import { UMB_TEMPLATE_QUERY_BUILDER_MODAL } from '../modals/query-builder/index.js';
+import { getQuerySnippet } from '../../utils/index.js';
+import { UMB_TEMPLATE_WORKSPACE_CONTEXT } from './template-workspace.context-token.js';
+import type { UmbCodeEditorElement } from '@umbraco-cms/backoffice/code-editor';
+import { UMB_TEMPLATE_PICKER_MODAL } from '@umbraco-cms/backoffice/template';
+
+// import local components
+import '../../local-components/insert-menu/index.js';
 
 @customElement('umb-template-workspace-editor')
 export class UmbTemplateWorkspaceEditorElement extends UmbLitElement {
@@ -129,7 +132,6 @@ export class UmbTemplateWorkspaceEditorElement extends UmbLitElement {
 	#openMasterTemplatePicker() {
 		const modalContext = this.#modalContext?.open(this, UMB_TEMPLATE_PICKER_MODAL, {
 			data: {
-				hideTreeRoot: true,
 				pickableFilter: (item) => {
 					return item.unique !== null && item.unique !== this.#templateWorkspaceContext?.getUnique();
 				},
@@ -188,7 +190,7 @@ export class UmbTemplateWorkspaceEditorElement extends UmbLitElement {
 			@input=${this.#onCodeEditorInput}></umb-code-editor>`;
 	}
 
-	render() {
+	override render() {
 		// TODO: add correct UI elements
 		return html`<umb-workspace-editor alias="Umb.Workspace.Template">
 			<uui-input
@@ -196,7 +198,8 @@ export class UmbTemplateWorkspaceEditorElement extends UmbLitElement {
 				slot="header"
 				.value=${this._name}
 				@input=${this.#onNameInput}
-				label=${this.localize.term('template_template')}>
+				label=${this.localize.term('template_template')}
+				${umbFocus()}>
 				<uui-input-lock slot="append" value=${ifDefined(this._alias!)} @input=${this.#onAliasInput}></uui-input-lock>
 			</uui-input>
 
@@ -229,7 +232,7 @@ export class UmbTemplateWorkspaceEditorElement extends UmbLitElement {
 		</umb-workspace-editor>`;
 	}
 
-	static styles = [
+	static override styles = [
 		css`
 			:host {
 				display: block;

@@ -4,10 +4,11 @@ import { UmbEnableUserEntityBulkAction } from './enable/enable.action.js';
 import { UmbSetGroupUserEntityBulkAction } from './set-group/set-group.action.js';
 import { UmbUnlockUserEntityBulkAction } from './unlock/unlock.action.js';
 import { UmbDisableUserEntityBulkAction } from './disable/disable.action.js';
-import type { ManifestEntityBulkAction } from '@umbraco-cms/backoffice/extension-registry';
+import type { ManifestEntityBulkAction, ManifestTypes } from '@umbraco-cms/backoffice/extension-registry';
 import { UMB_COLLECTION_ALIAS_CONDITION } from '@umbraco-cms/backoffice/collection';
 
 const entityActions: Array<ManifestEntityBulkAction> = [
+	/* TODO: Implement SetGroup entity action
 	{
 		type: 'entityBulkAction',
 		alias: 'Umb.EntityBulkAction.User.SetGroup',
@@ -25,6 +26,7 @@ const entityActions: Array<ManifestEntityBulkAction> = [
 			},
 		],
 	},
+	*/
 	{
 		type: 'entityBulkAction',
 		alias: 'Umb.EntityBulkAction.User.Enable',
@@ -78,4 +80,4 @@ const entityActions: Array<ManifestEntityBulkAction> = [
 	},
 ];
 
-export const manifests = [...entityActions];
+export const manifests: Array<ManifestTypes> = [...entityActions];

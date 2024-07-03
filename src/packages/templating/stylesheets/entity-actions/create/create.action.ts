@@ -1,9 +1,9 @@
-import { UMB_STYLESHEET_CREATE_OPTIONS_MODAL } from './options-modal/index.js';
 import { UmbEntityActionBase } from '@umbraco-cms/backoffice/entity-action';
 import { UMB_MODAL_MANAGER_CONTEXT } from '@umbraco-cms/backoffice/modal';
+import { UMB_STYLESHEET_CREATE_OPTIONS_MODAL } from './options-modal/index.js';
 
 export class UmbStylesheetCreateOptionsEntityAction extends UmbEntityActionBase<never> {
-	async execute() {
+	override async execute() {
 		const modalManager = await this.getContext(UMB_MODAL_MANAGER_CONTEXT);
 		const modalContext = modalManager.open(this, UMB_STYLESHEET_CREATE_OPTIONS_MODAL, {
 			data: {
@@ -17,3 +17,5 @@ export class UmbStylesheetCreateOptionsEntityAction extends UmbEntityActionBase<
 		await modalContext.onSubmit();
 	}
 }
+
+export { UmbStylesheetCreateOptionsEntityAction as api };

@@ -1,21 +1,27 @@
-import './content-type-design-editor-property.element.js';
 import { UMB_CONTENT_TYPE_WORKSPACE_CONTEXT } from '../../content-type-workspace.context-token.js';
-import type { UmbContentTypeDesignEditorPropertyElement } from './content-type-design-editor-property.element.js';
 import { UMB_CONTENT_TYPE_DESIGN_EDITOR_CONTEXT } from './content-type-design-editor.context.js';
+import type { UmbContentTypeDesignEditorPropertyElement } from './content-type-design-editor-property.element.js';
+import {
+	css,
+	customElement,
+	html,
+	ifDefined,
+	property,
+	repeat,
+	state,
+	when,
+} from '@umbraco-cms/backoffice/external/lit';
 import { UmbLitElement } from '@umbraco-cms/backoffice/lit-element';
-import { css, html, customElement, property, state, repeat, ifDefined } from '@umbraco-cms/backoffice/external/lit';
 import { UmbTextStyles } from '@umbraco-cms/backoffice/style';
-import type { UmbContentTypeModel, UmbPropertyTypeModel } from '@umbraco-cms/backoffice/content-type';
 import {
 	UmbContentTypePropertyStructureHelper,
 	UMB_PROPERTY_TYPE_SETTINGS_MODAL,
 } from '@umbraco-cms/backoffice/content-type';
+import type { UmbContentTypeModel, UmbPropertyTypeModel } from '@umbraco-cms/backoffice/content-type';
 import { type UmbSorterConfig, UmbSorterController } from '@umbraco-cms/backoffice/sorter';
-import {
-	type UmbModalRouteBuilder,
-	UmbModalRouteRegistrationController,
-	UMB_WORKSPACE_MODAL,
-} from '@umbraco-cms/backoffice/modal';
+import { type UmbModalRouteBuilder, UmbModalRouteRegistrationController } from '@umbraco-cms/backoffice/router';
+
+import './content-type-design-editor-property.element.js';
 
 const SORTER_CONFIG: UmbSorterConfig<UmbPropertyTypeModel, UmbContentTypeDesignEditorPropertyElement> = {
 	getUniqueOfElement: (element) => {
@@ -91,8 +97,8 @@ export class UmbContentTypeDesignEditorPropertiesElement extends UmbLitElement {
 		return this._containerId;
 	}
 	public set containerId(value: string | null | undefined) {
-		if (value === this._containerId) return;
 		const oldValue = this._containerId;
+		if (value === oldValue) return;
 		this._containerId = value;
 		this.#propertyStructureHelper.setContainerId(value);
 		this.#addPropertyModal.setUniquePathValue('container-id', value === null ? 'root' : value);
@@ -100,9 +106,11 @@ export class UmbContentTypeDesignEditorPropertiesElement extends UmbLitElement {
 	}
 
 	#addPropertyModal: UmbModalRouteRegistrationController;
-	#workspaceModal?: UmbModalRouteRegistrationController;
 
 	#propertyStructureHelper = new UmbContentTypePropertyStructureHelper<UmbContentTypeModel>(this);
+
+	@property({ attribute: false })
+	editContentTypePath?: string;
 
 	@state()
 	private _propertyStructure: Array<UmbPropertyTypeModel> = [];
@@ -112,9 +120,6 @@ export class UmbContentTypeDesignEditorPropertiesElement extends UmbLitElement {
 
 	@state()
 	private _modalRouteBuilderNewProperty?: UmbModalRouteBuilder;
-
-	@state()
-	private _editContentTypePath?: string;
 
 	@state()
 	private _sortModeActive?: boolean;
@@ -142,18 +147,6 @@ export class UmbContentTypeDesignEditorPropertiesElement extends UmbLitElement {
 		this.consumeContext(UMB_CONTENT_TYPE_WORKSPACE_CONTEXT, async (workspaceContext) => {
 			this.#propertyStructureHelper.setStructureManager(workspaceContext.structure);
 
-			const entityType = workspaceContext.getEntityType();
-
-			this.#workspaceModal?.destroy();
-			this.#workspaceModal = new UmbModalRouteRegistrationController(this, UMB_WORKSPACE_MODAL)
-				.addAdditionalPath(entityType)
-				.onSetup(async () => {
-					return { data: { entityType: entityType, preset: {} } };
-				})
-				.observeRouteBuilder((routeBuilder) => {
-					this._editContentTypePath = routeBuilder({});
-				});
-
 			this.observe(
 				workspaceContext.structure.ownerContentType,
 				(contentType) => {
@@ -172,8 +165,8 @@ export class UmbContentTypeDesignEditorPropertiesElement extends UmbLitElement {
 			.addUniquePaths(['container-id'])
 			.addAdditionalPath('add-property/:sortOrder')
 			.onSetup(async (params) => {
-				if (!this._ownerContentType || !this._containerId) return false;
-
+				// TODO: Make a onInit promise, that can be awaited here.
+				if (!this._ownerContentType || this._containerId === undefined) return false;
 				const propertyData = await this.#propertyStructureHelper.createPropertyScaffold(this._containerId);
 				if (propertyData === undefined) return false;
 				if (params.sortOrder !== undefined) {
@@ -197,7 +190,7 @@ export class UmbContentTypeDesignEditorPropertiesElement extends UmbLitElement {
 			});
 	}
 
-	render() {
+	override render() {
 		return this._ownerContentType
 			? html`
 					<div id="property-list" ?sort-mode-active=${this._sortModeActive}>
@@ -208,10 +201,7 @@ export class UmbContentTypeDesignEditorPropertiesElement extends UmbLitElement {
 								return html`
 									<umb-content-type-design-editor-property
 										data-umb-property-id=${property.id}
-										owner-content-type-id=${ifDefined(this._ownerContentType!.unique)}
-										owner-content-type-name=${ifDefined(this._ownerContentType!.name)}
-										.editContentTypePath=${this._editContentTypePath}
-										?inherited=${property.container?.id !== this.containerId}
+										.editContentTypePath=${this.editContentTypePath}
 										?sort-mode-active=${this._sortModeActive}
 										.propertyStructureHelper=${this.#propertyStructureHelper}
 										.property=${property}>
@@ -221,24 +211,26 @@ export class UmbContentTypeDesignEditorPropertiesElement extends UmbLitElement {
 						)}
 					</div>
 
-					${!this._sortModeActive
-						? html`<uui-button
+					${when(
+						!this._sortModeActive,
+						() => html`
+							<uui-button
+								id="btn-add"
+								href=${ifDefined(this._modalRouteBuilderNewProperty?.({ sortOrder: -1 }))}
 								label=${this.localize.term('contentTypeEditor_addProperty')}
-								id="add"
-								look="placeholder"
-								href=${ifDefined(this._modalRouteBuilderNewProperty?.({ sortOrder: -1 }))}>
-								<umb-localize key="contentTypeEditor_addProperty">Add property</umb-localize>
-							</uui-button> `
-						: ''}
+								look="placeholder"></uui-button>
+						`,
+					)}
 				`
 			: '';
 	}
 
-	static styles = [
+	static override styles = [
 		UmbTextStyles,
 		css`
-			#add {
+			#btn-add {
 				width: 100%;
+				--uui-button-height: var(--uui-size-14);
 			}
 
 			#property-list[sort-mode-active]:not(:has(umb-content-type-design-editor-property)) {

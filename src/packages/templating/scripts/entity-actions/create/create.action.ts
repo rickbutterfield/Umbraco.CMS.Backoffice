@@ -1,15 +1,15 @@
-import { UMB_SCRIPT_CREATE_OPTIONS_MODAL } from './options-modal/index.js';
 import type { UmbControllerHost } from '@umbraco-cms/backoffice/controller-api';
 import type { UmbEntityActionArgs } from '@umbraco-cms/backoffice/entity-action';
 import { UmbEntityActionBase } from '@umbraco-cms/backoffice/entity-action';
 import { UMB_MODAL_MANAGER_CONTEXT } from '@umbraco-cms/backoffice/modal';
+import { UMB_SCRIPT_CREATE_OPTIONS_MODAL } from './options-modal/index.js';
 
 export class UmbScriptCreateOptionsEntityAction extends UmbEntityActionBase<never> {
 	constructor(host: UmbControllerHost, args: UmbEntityActionArgs<never>) {
 		super(host, args);
 	}
 
-	async execute() {
+	override async execute() {
 		const modalManager = await this.getContext(UMB_MODAL_MANAGER_CONTEXT);
 		const modalContext = modalManager.open(this, UMB_SCRIPT_CREATE_OPTIONS_MODAL, {
 			data: {
@@ -22,6 +22,6 @@ export class UmbScriptCreateOptionsEntityAction extends UmbEntityActionBase<neve
 
 		await modalContext.onSubmit();
 	}
-
-
 }
+
+export { UmbScriptCreateOptionsEntityAction as api };

@@ -1,6 +1,6 @@
 export interface UmbBlockLayoutBaseModel {
 	contentUdi: string;
-	settingsUdi?: string;
+	settingsUdi?: string | null;
 }
 
 export interface UmbBlockDataType {
@@ -22,6 +22,7 @@ export interface UmbBlockViewUrlsPropType {
 
 export interface UmbBlockViewPropsType<BlockLayoutType extends UmbBlockLayoutBaseModel> {
 	label?: string;
+	icon?: string;
 	contentUdi: string;
 	layout?: BlockLayoutType;
 	content?: UmbBlockDataType;
