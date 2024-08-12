@@ -23,6 +23,9 @@ export abstract class UmbTreeItemElementBase<TreeItemModelType extends UmbTreeIt
 	private _isActive = false;
 
 	@state()
+	private _isDisabled = false;
+
+	@state()
 	private _childItems?: TreeItemModelType[];
 
 	@state()
