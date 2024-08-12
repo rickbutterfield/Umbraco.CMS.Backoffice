@@ -59,6 +59,9 @@ export abstract class UmbTreeItemContextBase<
 	#isActive = new UmbBooleanState(false);
 	readonly isActive = this.#isActive.asObservable();
 
+	protected _isDisabled = new UmbBooleanState(false);
+	readonly isDisabled = this._isDisabled.asObservable();
+
 	#hasActions = new UmbBooleanState(false);
 	readonly hasActions = this.#hasActions.asObservable();
 

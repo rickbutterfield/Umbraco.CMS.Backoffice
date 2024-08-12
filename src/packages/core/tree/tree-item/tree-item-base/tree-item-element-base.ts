@@ -69,6 +69,7 @@ export abstract class UmbTreeItemElementBase<TreeItemModelType extends UmbTreeIt
 			this.observe(this.#treeItemContext.childItems, (value) => (this._childItems = value));
 			this.observe(this.#treeItemContext.hasChildren, (value) => (this._hasChildren = value));
 			this.observe(this.#treeItemContext.isActive, (value) => (this._isActive = value));
+			this.observe(this.#treeItemContext.isDisabled, (value) => (this._isDisabled = value));
 			this.observe(this.#treeItemContext.isLoading, (value) => (this._isLoading = value));
 			this.observe(this.#treeItemContext.isSelectableContext, (value) => (this._isSelectableContext = value));
 			this.observe(this.#treeItemContext.isSelectable, (value) => (this._isSelectable = value));
@@ -116,7 +117,7 @@ export abstract class UmbTreeItemElementBase<TreeItemModelType extends UmbTreeIt
 				@selected=${this._handleSelectedItem}
 				@deselected=${this._handleDeselectedItem}
 				?active=${this._isActive}
-				?disabled=${this._isSelectableContext && !this._isSelectable}
+				?disabled=${this._isDisabled}
 				?selectable=${this._isSelectable}
 				?selected=${this._isSelected}
 				.loading=${this._isLoading}
