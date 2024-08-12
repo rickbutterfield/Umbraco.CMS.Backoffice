@@ -400,6 +400,13 @@ export abstract class UmbTreeItemContextBase<
 		}
 
 		const path = this.#path.getValue();
+
+		// don't set the active state if the path is empty
+		if (!path) {
+			this.#isActive.setValue(false);
+			return;
+		}
+
 		const location = window.location.pathname;
 		const isActive = location.includes(path);
 		this.#isActive.setValue(isActive);
