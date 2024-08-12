@@ -19,6 +19,7 @@ import {
 import type { UmbEntityActionEvent } from '@umbraco-cms/backoffice/entity-action';
 import { UmbPaginationManager, debounce } from '@umbraco-cms/backoffice/utils';
 import { UmbChangeEvent } from '@umbraco-cms/backoffice/event';
+import { UmbEntityContext } from '@umbraco-cms/backoffice/entity';
 
 export abstract class UmbTreeItemContextBase<
 		TreeItemType extends UmbTreeItemModel,
@@ -75,6 +76,8 @@ export abstract class UmbTreeItemContextBase<
 	#sectionContext?: UmbSectionContext;
 	#sectionSidebarContext?: UmbSectionSidebarContext;
 	#actionEventContext?: UmbActionEventContext;
+
+	#entityContext?: UmbEntityContext;
 
 	// TODO: get this from the tree context
 	#paging = {
@@ -146,6 +149,10 @@ export abstract class UmbTreeItemContextBase<
 
 		if (!treeItem.entityType) throw new Error('Could not create tree item context, tree item type is missing');
 		this.entityType = treeItem.entityType;
+
+		this.#entityContext = new UmbEntityContext(this);
+		this.#entityContext.setEntityType(treeItem.entityType);
+		this.#entityContext.setUnique(treeItem.unique);
 
 		this.#hasChildren.setValue(treeItem.hasChildren || false);
 		this._treeItem.setValue(treeItem);
