@@ -310,6 +310,8 @@ export abstract class UmbTreeItemContextBase<
 					this.#isSelectable.setValue(isSelectable);
 					this.#debouncedCheckIsActive();
 				}
+
+				this.checkIsDisabled();
 			},
 			'observeIsSelectable',
 		);
@@ -399,6 +401,11 @@ export abstract class UmbTreeItemContextBase<
 	};
 
 	#debouncedCheckIsActive = debounce(() => this.#checkIsActive(), 100);
+
+	checkIsDisabled() {
+		const isDisabled = this.#isSelectableContext.getValue() && !this.#isSelectable.getValue();
+		this._isDisabled.setValue(isDisabled);
+	}
 
 	#checkIsActive() {
 		// don't set the active state if the item is selectable
