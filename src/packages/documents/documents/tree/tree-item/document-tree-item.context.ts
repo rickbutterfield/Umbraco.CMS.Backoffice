@@ -23,8 +23,8 @@ export class UmbDocumentTreeItemContext extends UmbDefaultTreeItemContext<
 		this.#observeReadDocumentUserPermission();
 	}
 
-	override checkIsDisabled(): void {
-		super.checkIsDisabled();
+	override checkAndSetIsDisabled(): void {
+		super.checkAndSetIsDisabled();
 
 		if (!this.#hasReadPermission) {
 			this._isDisabled.setValue(true);
@@ -50,7 +50,7 @@ export class UmbDocumentTreeItemContext extends UmbDefaultTreeItemContext<
 			},
 			onChange: () => {
 				this.#hasReadPermission = condition.permitted;
-				this.checkIsDisabled();
+				this.checkAndSetIsDisabled();
 			},
 		});
 	}

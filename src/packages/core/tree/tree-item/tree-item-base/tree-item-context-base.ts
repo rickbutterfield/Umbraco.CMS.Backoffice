@@ -310,7 +310,7 @@ export abstract class UmbTreeItemContextBase<
 					this.#debouncedCheckIsActive();
 				}
 
-				this.checkIsDisabled();
+				this.checkAndSetIsDisabled();
 			},
 			'observeIsSelectable',
 		);
@@ -401,7 +401,10 @@ export abstract class UmbTreeItemContextBase<
 
 	#debouncedCheckIsActive = debounce(() => this.#checkIsActive(), 100);
 
-	checkIsDisabled() {
+	/**
+	 * Method to check if the item is disabled and set the value
+	 */
+	checkAndSetIsDisabled() {
 		const isDisabled = this.#isSelectableContext.getValue() && !this.#isSelectable.getValue();
 		this._isDisabled.setValue(isDisabled);
 	}
