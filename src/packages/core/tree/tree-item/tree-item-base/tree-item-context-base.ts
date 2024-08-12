@@ -216,6 +216,9 @@ export abstract class UmbTreeItemContextBase<
 		this.#isLoading.setValue(false);
 	}
 
+	/**
+	 * Opens the context menu
+	 */
 	public toggleContextMenu() {
 		if (!this.getTreeItem() || !this.entityType || this.unique === undefined) {
 			throw new Error('Could not request children, tree item is not set');
@@ -228,14 +231,35 @@ export abstract class UmbTreeItemContextBase<
 		});
 	}
 
+	/**
+	 * Select the item
+	 */
 	public select() {
 		if (this.unique === undefined) throw new Error('Could not select. Unique is missing');
 		this.treeContext?.selection.select(this.unique);
 	}
 
+	/**
+	 * Deselect the item
+	 */
 	public deselect() {
 		if (this.unique === undefined) throw new Error('Could not deselect. Unique is missing');
 		this.treeContext?.selection.deselect(this.unique);
+	}
+
+	/**
+	 * Method to check if the item is disabled and set the value
+	 */
+	public checkAndSetIsDisabled() {
+		const isDisabled = this.#isSelectableContext.getValue() && !this.#isSelectable.getValue();
+		this._isDisabled.setValue(isDisabled);
+	}
+
+	/*
+	 * Get the tree item
+	 */
+	getTreeItem() {
+		return this._treeItem.getValue();
 	}
 
 	async #consumeContexts() {
@@ -290,10 +314,6 @@ export abstract class UmbTreeItemContextBase<
 				this.#onReloadStructureRequest as unknown as EventListener,
 			);
 		});
-	}
-
-	getTreeItem() {
-		return this._treeItem.getValue();
 	}
 
 	#observeIsSelectable() {
@@ -400,14 +420,6 @@ export abstract class UmbTreeItemContextBase<
 	};
 
 	#debouncedCheckIsActive = debounce(() => this.#checkIsActive(), 100);
-
-	/**
-	 * Method to check if the item is disabled and set the value
-	 */
-	checkAndSetIsDisabled() {
-		const isDisabled = this.#isSelectableContext.getValue() && !this.#isSelectable.getValue();
-		this._isDisabled.setValue(isDisabled);
-	}
 
 	#checkIsActive() {
 		// don't set the active state if the item is selectable
