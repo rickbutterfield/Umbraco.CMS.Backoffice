@@ -298,7 +298,7 @@ export abstract class UmbTreeItemContextBase<
 				if (value === true) {
 					const isSelectable = this.treeContext?.selectableFilter?.(this.getTreeItem()!) ?? true;
 					this.#isSelectable.setValue(isSelectable);
-					this.#checkIsActive();
+					this.#debouncedCheckIsActive();
 				}
 			},
 			'observeIsSelectable',
