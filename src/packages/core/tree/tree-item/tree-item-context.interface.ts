@@ -14,6 +14,7 @@ export interface UmbTreeItemContext<TreeItemType extends UmbTreeItemModel> exten
 	isSelectable: Observable<boolean>;
 	isSelected: Observable<boolean>;
 	isActive: Observable<boolean>;
+	isDisabled: Observable<boolean>;
 	hasActions: Observable<boolean>;
 	path: Observable<string>;
 	pagination: UmbPaginationManager;
