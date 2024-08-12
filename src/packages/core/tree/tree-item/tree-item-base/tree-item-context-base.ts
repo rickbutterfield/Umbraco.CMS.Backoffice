@@ -77,7 +77,7 @@ export abstract class UmbTreeItemContextBase<
 	#sectionSidebarContext?: UmbSectionSidebarContext;
 	#actionEventContext?: UmbActionEventContext;
 
-	#entityContext?: UmbEntityContext;
+	#entityContext = new UmbEntityContext(this);
 
 	// TODO: get this from the tree context
 	#paging = {
@@ -150,7 +150,6 @@ export abstract class UmbTreeItemContextBase<
 		if (!treeItem.entityType) throw new Error('Could not create tree item context, tree item type is missing');
 		this.entityType = treeItem.entityType;
 
-		this.#entityContext = new UmbEntityContext(this);
 		this.#entityContext.setEntityType(treeItem.entityType);
 		this.#entityContext.setUnique(treeItem.unique);
 
